@@ -22,7 +22,8 @@
 #import "Firestore/Example/Tests/Util/FSTIntegrationTestCase.h"
 #import "Firestore/Source/API/FIRFirestore+Internal.h"
 #import "Firestore/Source/Core/FSTFirestoreClient.h"
-#import "Firestore/Source/Util/FSTDispatchQueue.h"
+
+using firebase::firestore::util::TimerId;
 
 @interface FIRDatabaseTests : FSTIntegrationTestCase
 @end
@@ -1178,7 +1179,7 @@
   FIRFirestore *firestore = doc.firestore;
 
   [self writeDocumentRef:doc data:@{@"foo" : @"bar"}];
-  [[self queueForFirestore:firestore] runDelayedCallbacksUntil:FSTTimerIDWriteStreamIdle];
+  [[self queueForFirestore:firestore] runDelayedCallbacksUntil:TimerId::WriteStreamIdle];
   [self writeDocumentRef:doc data:@{@"foo" : @"bar"}];
 }
 
@@ -1187,7 +1188,7 @@
   FIRFirestore *firestore = doc.firestore;
 
   [self readSnapshotForRef:[self documentRef] requireOnline:YES];
-  [[self queueForFirestore:firestore] runDelayedCallbacksUntil:FSTTimerIDListenStreamIdle];
+  [[self queueForFirestore:firestore] runDelayedCallbacksUntil:TimerId::ListenStreamIdle];
   [self readSnapshotForRef:[self documentRef] requireOnline:YES];
 }
 
