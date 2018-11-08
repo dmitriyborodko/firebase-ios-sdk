@@ -39,6 +39,8 @@
 #include "Firestore/core/src/firebase/firestore/core/database_info.h"
 #include "Firestore/core/src/firebase/firestore/model/database_id.h"
 #include "Firestore/core/src/firebase/firestore/model/precondition.h"
+#include "Firestore/core/src/firebase/firestore/util/async_queue.h"
+#include "Firestore/core/src/firebase/firestore/util/executor_libdispatch.h"
 #include "Firestore/core/src/firebase/firestore/util/hard_assert.h"
 #include "Firestore/core/src/firebase/firestore/util/string_apple.h"
 
@@ -51,6 +53,8 @@ using firebase::firestore::model::DocumentKeySet;
 using firebase::firestore::model::Precondition;
 using firebase::firestore::model::TargetId;
 using firebase::firestore::remote::GrpcConnection;
+using firebase::firestore::util::AsyncQueue;
+using firebase::firestore::util::internal::ExecutorLibdispatch;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -146,7 +150,7 @@ NS_ASSUME_NONNULL_BEGIN
 @end
 
 @implementation FSTDatastoreTests {
-  FSTDispatchQueue *_testWorkerQueue;
+  AsyncQueue *_testWorkerQueue;
   FSTLocalStore *_localStore;
   EmptyCredentialsProvider _credentials;
 
@@ -169,29 +173,28 @@ NS_ASSUME_NONNULL_BEGIN
   _databaseInfo =
       DatabaseInfo(database_id, "test-key", util::MakeString(settings.host), settings.sslEnabled);
 
-  _testWorkerQueue = [FSTDispatchQueue
-      queueWith:dispatch_queue_create("com.google.firestore.FSTDatastoreTestsWorkerQueue",
-                                      DISPATCH_QUEUE_SERIAL)];
-
+  dispatch_queue_t queue = dispatch_queue_create("com.google.firestore.FSTDatastoreTestsWorkerQueue",
+                                      DISPATCH_QUEUE_SERIAL);
+    _workerQueue = absl::make_unique<AsyncQueue>(absl::make_unique<ExecutorLibdispatch>(queue));
   _datastore = [FSTDatastore datastoreWithDatabase:&_databaseInfo
-                               workerDispatchQueue:_testWorkerQueue
+                               workerQueue:_testWorkerQueue
                                        credentials:&_credentials];
 
   _remoteStore = [[FSTRemoteStore alloc] initWithLocalStore:_localStore
                                                   datastore:_datastore
-                                        workerDispatchQueue:_testWorkerQueue];
+                                        workerQueue:_testWorkerQueue];
 
-  [_testWorkerQueue dispatchAsync:^() {
+  _workerQueue->Enqueue([=] {
     [_remoteStore start];
-  }];
+  });
 }
 
 - (void)tearDown {
   XCTestExpectation *completion = [self expectationWithDescription:@"shutdown"];
-  [_testWorkerQueue dispatchAsync:^{
+  _workerQueue->Enqueue([=] {
     [_remoteStore shutdown];
     [completion fulfill];
-  }];
+  });
   [self awaitExpectations];
 
   [super tearDown];
@@ -219,12 +222,12 @@ NS_ASSUME_NONNULL_BEGIN
   FSTMutationBatch *batch = [[FSTMutationBatch alloc] initWithBatchID:23
                                                        localWriteTime:[FIRTimestamp timestamp]
                                                             mutations:@[ mutation ]];
-  [_testWorkerQueue dispatchAsync:^{
+  _workerQueue->Enqueue([=] {
     [_remoteStore addBatchToWritePipeline:batch];
     // The added batch won't be written immediately because write stream wasn't yet open --
     // trigger its opening.
     [_remoteStore fillWritePipeline];
-  }];
+  });
 
   [self awaitExpectations];
 }

@@ -43,12 +43,11 @@
 #include "Firestore/core/src/firebase/firestore/model/database_id.h"
 #include "Firestore/core/src/firebase/firestore/model/resource_path.h"
 #include "Firestore/core/src/firebase/firestore/util/async_queue.h"
+#include "Firestore/core/src/firebase/firestore/util/executor_libdispatch.h"
 #include "Firestore/core/src/firebase/firestore/util/hard_assert.h"
 #include "Firestore/core/src/firebase/firestore/util/log.h"
 #include "Firestore/core/src/firebase/firestore/util/string_apple.h"
 #include "absl/memory/memory.h"
-
-#include "Firestore/core/src/firebase/firestore/util/executor_libdispatch.h"
 
 namespace util = firebase::firestore::util;
 using firebase::firestore::auth::CredentialsProvider;
@@ -264,7 +263,7 @@ extern "C" NSString *const FIRFirestoreErrorDomain = @"FIRFirestoreErrorDomain";
                                             usePersistence:_settings.persistenceEnabled
                                        credentialsProvider:_credentialsProvider.get()
                                               userExecutor:std::move(userExecutor)
-                                       workerQueue:std::move(_workerQueue)];
+                                       workerQueue:_workerQueue.get()];
     }
   }
 }
