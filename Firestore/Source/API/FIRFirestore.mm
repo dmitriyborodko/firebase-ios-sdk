@@ -71,6 +71,7 @@ extern "C" NSString *const FIRFirestoreErrorDomain = @"FIRFirestoreErrorDomain";
   std::unique_ptr<CredentialsProvider> _credentialsProvider;
 }
 
+
 @property(nonatomic, strong) NSString *persistenceKey;
 
 // Note that `client` is updated after initialization, but marking this readwrite would generate an
@@ -82,10 +83,14 @@ extern "C" NSString *const FIRFirestoreErrorDomain = @"FIRFirestoreErrorDomain";
 
 @implementation FIRFirestore {
   std::unique_ptr<AsyncQueue> _workerQueue;
-
+  
   // All guarded by @synchronized(self)
   FIRFirestoreSettings *_settings;
   FSTFirestoreClient *_client;
+}
+
+- (AsyncQueue*) workerQueue {
+   return _workerQueue.get();
 }
 
 + (NSMutableDictionary<NSString *, FIRFirestore *> *)instances {

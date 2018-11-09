@@ -62,7 +62,7 @@ NS_ASSUME_NONNULL_BEGIN
                           userExecutor:
                               (std::unique_ptr<firebase::firestore::util::internal::Executor>)
                                   userExecutor
-                   workerQueue:(std::unique_ptr<firebase::firestore::util::AsyncQueue>)workerQueue;
+                   workerQueue:(firebase::firestore::util::AsyncQueue*)workerQueue;
 
 - (instancetype)init __attribute__((unavailable("Use static constructor method.")));
 

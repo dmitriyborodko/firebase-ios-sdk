@@ -43,7 +43,7 @@
 #include "Firestore/core/src/firebase/firestore/util/executor_libdispatch.h"
 #include "Firestore/core/src/firebase/firestore/util/hard_assert.h"
 #include "Firestore/core/src/firebase/firestore/util/log.h"
-#include "third_party/absl/memory/memory.h"
+#include "absl/memory/memory.h"
 
 using firebase::firestore::auth::EmptyCredentialsProvider;
 using firebase::firestore::auth::HashUser;
@@ -55,6 +55,7 @@ using firebase::firestore::model::OnlineState;
 using firebase::firestore::model::SnapshotVersion;
 using firebase::firestore::model::TargetId;
 using firebase::firestore::util::AsyncQueue;
+using firebase::firestore::util::TimerId;
 using firebase::firestore::util::internal::ExecutorLibdispatch;
 
 NS_ASSUME_NONNULL_BEGIN
@@ -139,12 +140,12 @@ NS_ASSUME_NONNULL_BEGIN
     _persistence = persistence;
     _localStore = [[FSTLocalStore alloc] initWithPersistence:persistence initialUser:initialUser];
     _datastore = [[FSTMockDatastore alloc] initWithDatabaseInfo:&_databaseInfo
-                                            workerDispatchQueue:_workerQueue.get()
+                                            workerQueue:_workerQueue.get()
                                                     credentials:&_credentialProvider];
 
     _remoteStore = [[FSTRemoteStore alloc] initWithLocalStore:_localStore
                                                     datastore:_datastore
-                                          workerDispatchQueue:_workerQueue.get()];
+                                          workerQueue:_workerQueue.get()];
 
     _syncEngine = [[FSTSyncEngine alloc] initWithLocalStore:_localStore
                                                 remoteStore:_remoteStore
@@ -253,8 +254,8 @@ NS_ASSUME_NONNULL_BEGIN
   });
 }
 
-- (void)runTimer:(FSTTimerID)timerID {
-  _workerQueue->RunDelayedCallbacksUntil(timerID);
+- (void)runTimer:(TimerId)timerID {
+  _workerQueue->RunScheduledOperationsUntil(timerID);
 }
 
 - (void)changeUser:(const User &)user {
@@ -336,7 +337,7 @@ NS_ASSUME_NONNULL_BEGIN
         [self.events addObject:event];
       }];
   self.queryListeners[query] = listener;
-  __block TargetId targetID;
+  TargetId targetID;
   _workerQueue->EnqueueBlocking([&] {
     targetID = [self.eventManager addListener:listener];
   });

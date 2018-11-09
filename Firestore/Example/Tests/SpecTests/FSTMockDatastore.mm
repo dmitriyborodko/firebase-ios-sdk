@@ -284,7 +284,7 @@ using firebase::firestore::remote::MockWriteStream;
 
 - (std::shared_ptr<WatchStream>)createWatchStreamWithDelegate:(id<FSTWatchStreamDelegate>)delegate {
   _watchStream = std::make_shared<MockWatchStream>(
-      workerQueue, self.credentials,
+      _workerQueue, self.credentials,
       [[FSTSerializerBeta alloc] initWithDatabaseID:&self.databaseInfo->database_id()],
       _grpcConnection.get(), delegate, self);
 
@@ -293,7 +293,7 @@ using firebase::firestore::remote::MockWriteStream;
 
 - (std::shared_ptr<WriteStream>)createWriteStreamWithDelegate:(id<FSTWriteStreamDelegate>)delegate {
   _writeStream = std::make_shared<MockWriteStream>(
-      workerQueue, self.credentials,
+      _workerQueue, self.credentials,
       [[FSTSerializerBeta alloc] initWithDatabaseID:&self.databaseInfo->database_id()],
       _grpcConnection.get(), delegate, self);
 

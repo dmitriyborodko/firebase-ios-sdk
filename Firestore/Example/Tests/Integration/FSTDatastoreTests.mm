@@ -31,7 +31,6 @@
 #import "Firestore/Source/Remote/FSTDatastore.h"
 #import "Firestore/Source/Remote/FSTRemoteEvent.h"
 #import "Firestore/Source/Remote/FSTRemoteStore.h"
-#import "Firestore/Source/Util/FSTDispatchQueue.h"
 
 #import "Firestore/Example/Tests/Util/FSTIntegrationTestCase.h"
 
@@ -150,7 +149,7 @@ NS_ASSUME_NONNULL_BEGIN
 @end
 
 @implementation FSTDatastoreTests {
-  AsyncQueue *_testWorkerQueue;
+  std::unique_ptr<AsyncQueue> _testWorkerQueue;
   FSTLocalStore *_localStore;
   EmptyCredentialsProvider _credentials;
 
@@ -173,25 +172,23 @@ NS_ASSUME_NONNULL_BEGIN
   _databaseInfo =
       DatabaseInfo(database_id, "test-key", util::MakeString(settings.host), settings.sslEnabled);
 
-  dispatch_queue_t queue = dispatch_queue_create("com.google.firestore.FSTDatastoreTestsWorkerQueue",
-                                      DISPATCH_QUEUE_SERIAL);
-    _workerQueue = absl::make_unique<AsyncQueue>(absl::make_unique<ExecutorLibdispatch>(queue));
+  dispatch_queue_t queue = dispatch_queue_create(
+      "com.google.firestore.FSTDatastoreTestsWorkerQueue", DISPATCH_QUEUE_SERIAL);
+  _testWorkerQueue = absl::make_unique<AsyncQueue>(absl::make_unique<ExecutorLibdispatch>(queue));
   _datastore = [FSTDatastore datastoreWithDatabase:&_databaseInfo
-                               workerQueue:_testWorkerQueue
+                                       workerQueue:_testWorkerQueue.get()
                                        credentials:&_credentials];
 
   _remoteStore = [[FSTRemoteStore alloc] initWithLocalStore:_localStore
                                                   datastore:_datastore
-                                        workerQueue:_testWorkerQueue];
+                                                workerQueue:_testWorkerQueue.get()];
 
-  _workerQueue->Enqueue([=] {
-    [_remoteStore start];
-  });
+  _testWorkerQueue->Enqueue([=] { [_remoteStore start]; });
 }
 
 - (void)tearDown {
   XCTestExpectation *completion = [self expectationWithDescription:@"shutdown"];
-  _workerQueue->Enqueue([=] {
+  _testWorkerQueue->Enqueue([=] {
     [_remoteStore shutdown];
     [completion fulfill];
   });
@@ -222,7 +219,7 @@ NS_ASSUME_NONNULL_BEGIN
   FSTMutationBatch *batch = [[FSTMutationBatch alloc] initWithBatchID:23
                                                        localWriteTime:[FIRTimestamp timestamp]
                                                             mutations:@[ mutation ]];
-  _workerQueue->Enqueue([=] {
+  _testWorkerQueue->Enqueue([=] {
     [_remoteStore addBatchToWritePipeline:batch];
     // The added batch won't be written immediately because write stream wasn't yet open --
     // trigger its opening.

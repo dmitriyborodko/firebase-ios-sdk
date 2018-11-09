@@ -34,7 +34,7 @@ namespace util {
  * presence of delayed operations or to run them early.
  */
 enum class TimerId {
-  /** All can be used with `RunDelayedOperationsUntil` to run all timers. */
+  /** All can be used with `RunScheduledOperationsUntil` to run all timers. */
   All,
 
   /**

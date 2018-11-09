@@ -73,7 +73,7 @@ NS_ASSUME_NONNULL_BEGIN
                  credentialsProvider:
                      (CredentialsProvider *)credentialsProvider  // no passing ownership
                         userExecutor:(std::unique_ptr<Executor>)userExecutor
-                 workerQueue:(std::unique_ptr<AsyncQueue> )queue NS_DESIGNATED_INITIALIZER;
+                 workerQueue:(AsyncQueue*)queue NS_DESIGNATED_INITIALIZER;
 
 @property(nonatomic, assign, readonly) const DatabaseInfo *databaseInfo;
 @property(nonatomic, strong, readonly) FSTEventManager *eventManager;
@@ -94,7 +94,7 @@ NS_ASSUME_NONNULL_BEGIN
  * onto this queue. This ensures our internal data structures are never accessed from multiple
  * threads simultaneously.
  */
-  std::unique_ptr<AsyncQueue> _workerQueue;
+  AsyncQueue* _workerQueue;
 
   std::unique_ptr<Executor> _userExecutor;
 }
@@ -108,12 +108,12 @@ NS_ASSUME_NONNULL_BEGIN
                    credentialsProvider:
                        (CredentialsProvider *)credentialsProvider  // no passing ownership
                           userExecutor:(std::unique_ptr<Executor>)userExecutor
-                   workerQueue:(std::unique_ptr<AsyncQueue>)workerQueue {
+                   workerQueue:(AsyncQueue*)workerQueue {
   return [[FSTFirestoreClient alloc] initWithDatabaseInfo:databaseInfo
                                            usePersistence:usePersistence
                                       credentialsProvider:credentialsProvider
                                              userExecutor:std::move(userExecutor)
-                                      workerQueue:std::move(workerQueue)];
+                                      workerQueue:workerQueue];
 }
 
 - (instancetype)initWithDatabaseInfo:(const DatabaseInfo &)databaseInfo
@@ -121,12 +121,12 @@ NS_ASSUME_NONNULL_BEGIN
                  credentialsProvider:
                      (CredentialsProvider *)credentialsProvider  // no passing ownership
                         userExecutor:(std::unique_ptr<Executor>)userExecutor
-                 workerQueue:(std::unique_ptr<AsyncQueue>)workerQueue {
+                 workerQueue:(AsyncQueue*)workerQueue {
   if (self = [super init]) {
     _databaseInfo = databaseInfo;
     _credentialsProvider = credentialsProvider;
     _userExecutor = std::move(userExecutor);
-    _workerQueue = std::move(workerQueue);
+    _workerQueue = workerQueue;
 
     auto userPromise = std::make_shared<std::promise<User>>();
     bool initialized = false;
@@ -194,12 +194,12 @@ NS_ASSUME_NONNULL_BEGIN
   _localStore = [[FSTLocalStore alloc] initWithPersistence:_persistence initialUser:user];
 
   FSTDatastore *datastore = [FSTDatastore datastoreWithDatabase:self.databaseInfo
-                                            workerQueue:_workerQueue.get()
+                                            workerQueue:_workerQueue
                                                     credentials:_credentialsProvider];
 
   _remoteStore = [[FSTRemoteStore alloc] initWithLocalStore:_localStore
                                                   datastore:datastore
-                                        workerQueue:_workerQueue.get()];
+                                        workerQueue:_workerQueue];
 
   _syncEngine = [[FSTSyncEngine alloc] initWithLocalStore:_localStore
                                               remoteStore:_remoteStore
@@ -365,7 +365,7 @@ NS_ASSUME_NONNULL_BEGIN
   _workerQueue->Enqueue([=] {
     [self.syncEngine
         transactionWithRetries:retries
-           workerQueue:_workerQueue.get()
+           workerQueue:_workerQueue
                    updateBlock:updateBlock
                     completion:^(id _Nullable result, NSError *_Nullable error) {
                       // Dispatch the result back onto the user dispatch queue.
