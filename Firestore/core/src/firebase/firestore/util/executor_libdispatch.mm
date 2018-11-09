@@ -45,6 +45,8 @@ absl::string_view GetCurrentQueueLabel() {
 
 }  // namespace
 
+namespace internal {
+
 void DispatchAsync(const dispatch_queue_t queue, std::function<void()>&& work) {
   // Dynamically allocate the function to make sure the object is valid by the
   // time libdispatch gets to it.
@@ -69,6 +71,11 @@ void DispatchSync(const dispatch_queue_t queue, std::function<void()> work) {
     (*unwrap)();
   });
 }
+
+}  // namespace internal
+
+using internal::DispatchAsync;
+using internal::DispatchSync;
 
 namespace {
 

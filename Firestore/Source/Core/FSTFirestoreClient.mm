@@ -132,7 +132,7 @@ NS_ASSUME_NONNULL_BEGIN
     bool initialized = false;
 
     __weak __typeof__(self) weakSelf = self;
-    auto credentialChangeListener = [initialized, userPromise, weakSelf,
+    auto credentialChangeListener = [self, initialized, userPromise, weakSelf,
                                      workerQueue](User user) mutable {
       __typeof__(self) strongSelf = weakSelf;
       if (!strongSelf) return;

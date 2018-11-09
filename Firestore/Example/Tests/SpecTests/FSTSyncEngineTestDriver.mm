@@ -345,7 +345,7 @@ NS_ASSUME_NONNULL_BEGIN
   write.write = mutation;
   [[self currentOutstandingWrites] addObject:write];
   LOG_DEBUG("sending a user write.");
-  _workerQueue->EnqueueBlocking([&] {
+  _workerQueue->EnqueueBlocking([=] {
     [self.syncEngine writeMutations:@[ mutation ]
                          completion:^(NSError *_Nullable error) {
                            LOG_DEBUG("A callback was called with error: %s", error);
