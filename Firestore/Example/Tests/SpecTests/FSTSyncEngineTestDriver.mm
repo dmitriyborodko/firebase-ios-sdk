@@ -56,7 +56,7 @@ using firebase::firestore::model::SnapshotVersion;
 using firebase::firestore::model::TargetId;
 using firebase::firestore::util::AsyncQueue;
 using firebase::firestore::util::TimerId;
-using firebase::firestore::util::internal::ExecutorLibdispatch;
+using firebase::firestore::util::ExecutorLibdispatch;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -182,7 +182,7 @@ NS_ASSUME_NONNULL_BEGIN
 }
 
 - (void)drainQueue {
-  _workerQueue->EnqueueBlocking([&] {});
+  _workerQueue->EnqueueBlocking([] {});
 }
 
 - (const User &)currentUser {

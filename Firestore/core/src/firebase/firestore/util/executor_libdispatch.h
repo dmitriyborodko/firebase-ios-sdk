@@ -39,8 +39,6 @@ namespace firebase {
 namespace firestore {
 namespace util {
 
-namespace internal {
-
 // Generic wrapper over `dispatch_async_f`, providing `dispatch_async`-like
 // interface: accepts an arbitrary invocable object in place of an Objective-C
 // block.
@@ -83,7 +81,6 @@ class ExecutorLibdispatch : public Executor {
   std::vector<TimeSlot*> schedule_;
 };
 
-}  // namespace internal
 }  // namespace util
 }  // namespace firestore
 }  // namespace firebase

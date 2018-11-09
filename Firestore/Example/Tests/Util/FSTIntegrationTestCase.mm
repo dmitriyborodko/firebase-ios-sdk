@@ -63,7 +63,7 @@ using firebase::firestore::util::AsyncQueue;
 using firebase::firestore::util::CreateAutoId;
 using firebase::firestore::util::Path;
 using firebase::firestore::util::Status;
-using firebase::firestore::util::internal::ExecutorLibdispatch;
+using firebase::firestore::util::ExecutorLibdispatch;
 
 NS_ASSUME_NONNULL_BEGIN
 

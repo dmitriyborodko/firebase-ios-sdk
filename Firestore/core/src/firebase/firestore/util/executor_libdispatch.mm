@@ -23,7 +23,6 @@
 namespace firebase {
 namespace firestore {
 namespace util {
-namespace internal {
 
 namespace {
 
@@ -297,7 +296,6 @@ ExecutorLibdispatch::PopFromSchedule() {
   return result;
 }
 
-}  // namespace internal
 }  // namespace util
 }  // namespace firestore
 }  // namespace firebase

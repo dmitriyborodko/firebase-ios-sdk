@@ -60,7 +60,7 @@ using firebase::firestore::model::OnlineState;
 using firebase::firestore::util::Path;
 using firebase::firestore::util::Status;
 using firebase::firestore::util::AsyncQueue;
-using firebase::firestore::util::internal::Executor;
+using firebase::firestore::util::Executor;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -132,7 +132,8 @@ NS_ASSUME_NONNULL_BEGIN
     bool initialized = false;
 
     __weak __typeof__(self) weakSelf = self;
-    auto credentialChangeListener = [=](User user) mutable {
+    auto credentialChangeListener = [initialized, userPromise, weakSelf,
+                                     workerQueue](User user) mutable {
       __typeof__(self) strongSelf = weakSelf;
       if (!strongSelf) return;
 

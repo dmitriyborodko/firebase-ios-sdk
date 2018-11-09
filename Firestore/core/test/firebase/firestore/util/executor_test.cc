@@ -30,7 +30,7 @@ namespace firestore {
 namespace util {
 
 namespace chr = std::chrono;
-using internal::Executor;
+using Executor;
 
 namespace {
 

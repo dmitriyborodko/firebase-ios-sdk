@@ -56,8 +56,8 @@ using firebase::firestore::core::DatabaseInfo;
 using firebase::firestore::model::DatabaseId;
 using firebase::firestore::model::ResourcePath;
 using util::AsyncQueue;
-using util::internal::Executor;
-using util::internal::ExecutorLibdispatch;
+using util::Executor;
+using util::ExecutorLibdispatch;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -338,13 +338,15 @@ extern "C" NSString *const FIRFirestoreErrorDomain = @"FIRFirestoreErrorDomain";
 - (void)runTransactionWithBlock:(id _Nullable (^)(FIRTransaction *, NSError **error))updateBlock
                      completion:
                          (void (^)(id _Nullable result, NSError *_Nullable error))completion {
-  static dispatch_queue_t transactionQueue;
+  static dispatch_queue_t transactionDispatchQueue;
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
-    transactionQueue = dispatch_queue_create("com.google.firebase.firestore.transaction",
-                                             DISPATCH_QUEUE_CONCURRENT);
+    transactionDispatchQueue = dispatch_queue_create("com.google.firebase.firestore.transaction",
+                                                     DISPATCH_QUEUE_CONCURRENT);
   });
-  [self runTransactionWithBlock:updateBlock dispatchQueue:transactionQueue completion:completion];
+  [self runTransactionWithBlock:updateBlock
+                  dispatchQueue:transactionDispatchQueue
+                     completion:completion];
 }
 
 - (void)shutdownWithCompletion:(nullable void (^)(NSError *_Nullable error))completion {

@@ -56,7 +56,7 @@ using firebase::firestore::model::Precondition;
 using firebase::firestore::model::TargetId;
 using firebase::firestore::remote::GrpcConnection;
 using firebase::firestore::util::AsyncQueue;
-using firebase::firestore::util::internal::ExecutorLibdispatch;
+using firebase::firestore::util::ExecutorLibdispatch;
 
 NS_ASSUME_NONNULL_BEGIN
 

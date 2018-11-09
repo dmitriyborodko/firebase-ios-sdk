@@ -41,7 +41,7 @@ namespace util = firebase::firestore::util;
 using firebase::firestore::auth::CredentialsProvider;
 using firebase::firestore::auth::FirebaseCredentialsProvider;
 using util::AsyncQueue;
-using util::internal::ExecutorLibdispatch;
+using util::ExecutorLibdispatch;
 
 NS_ASSUME_NONNULL_BEGIN
 

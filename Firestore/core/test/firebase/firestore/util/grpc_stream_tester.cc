@@ -29,9 +29,9 @@ namespace firebase {
 namespace firestore {
 namespace util {
 
+using ExecutorStd;
 using auth::Token;
 using auth::User;
-using internal::ExecutorStd;
 using model::DatabaseId;
 using remote::ConnectivityMonitor;
 using remote::GrpcCompletion;
