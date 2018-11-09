@@ -71,7 +71,6 @@ extern "C" NSString *const FIRFirestoreErrorDomain = @"FIRFirestoreErrorDomain";
   std::unique_ptr<CredentialsProvider> _credentialsProvider;
 }
 
-
 @property(nonatomic, strong) NSString *persistenceKey;
 
 // Note that `client` is updated after initialization, but marking this readwrite would generate an
@@ -83,14 +82,14 @@ extern "C" NSString *const FIRFirestoreErrorDomain = @"FIRFirestoreErrorDomain";
 
 @implementation FIRFirestore {
   std::unique_ptr<AsyncQueue> _workerQueue;
-  
+
   // All guarded by @synchronized(self)
   FIRFirestoreSettings *_settings;
   FSTFirestoreClient *_client;
 }
 
-- (AsyncQueue*) workerQueue {
-   return _workerQueue.get();
+- (AsyncQueue *)workerQueue {
+  return _workerQueue.get();
 }
 
 + (NSMutableDictionary<NSString *, FIRFirestore *> *)instances {
@@ -169,7 +168,7 @@ extern "C" NSString *const FIRFirestoreErrorDomain = @"FIRFirestoreErrorDomain";
                          database:(std::string)database
                    persistenceKey:(NSString *)persistenceKey
               credentialsProvider:(std::unique_ptr<CredentialsProvider>)credentialsProvider
-              workerQueue:(std::unique_ptr<AsyncQueue>)workerQueue
+                      workerQueue:(std::unique_ptr<AsyncQueue>)workerQueue
                       firebaseApp:(FIRApp *)app {
   if (self = [super init]) {
     _databaseID = DatabaseId{std::move(projectID), std::move(database)};
@@ -268,7 +267,7 @@ extern "C" NSString *const FIRFirestoreErrorDomain = @"FIRFirestoreErrorDomain";
                                             usePersistence:_settings.persistenceEnabled
                                        credentialsProvider:_credentialsProvider.get()
                                               userExecutor:std::move(userExecutor)
-                                       workerQueue:_workerQueue.get()];
+                                               workerQueue:_workerQueue.get()];
     }
   }
 }
@@ -343,11 +342,9 @@ extern "C" NSString *const FIRFirestoreErrorDomain = @"FIRFirestoreErrorDomain";
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
     transactionQueue = dispatch_queue_create("com.google.firebase.firestore.transaction",
-                                                     DISPATCH_QUEUE_CONCURRENT);
+                                             DISPATCH_QUEUE_CONCURRENT);
   });
-  [self runTransactionWithBlock:updateBlock
-                  dispatchQueue:transactionQueue
-                     completion:completion];
+  [self runTransactionWithBlock:updateBlock dispatchQueue:transactionQueue completion:completion];
 }
 
 - (void)shutdownWithCompletion:(nullable void (^)(NSError *_Nullable error))completion {

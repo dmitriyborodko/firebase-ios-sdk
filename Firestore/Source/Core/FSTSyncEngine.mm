@@ -270,14 +270,14 @@ class LimboResolution {
  * reads are performed before any writes. Transactions must be performed while online.
  */
 - (void)transactionWithRetries:(int)retries
-           workerQueue:(AsyncQueue *)workerQueue
+                   workerQueue:(AsyncQueue *)workerQueue
                    updateBlock:(FSTTransactionBlock)updateBlock
                     completion:(FSTVoidIDErrorBlock)completion {
   workerQueue->VerifyIsCurrentQueue();
   HARD_ASSERT(retries >= 0, "Got negative number of retries for transaction");
   FSTTransaction *transaction = [self.remoteStore transaction];
   updateBlock(transaction, ^(id _Nullable result, NSError *_Nullable error) {
-  workerQueue->Enqueue([=] {
+    workerQueue->Enqueue([=] {
       if (error) {
         completion(nil, error);
         return;
@@ -301,7 +301,7 @@ class LimboResolution {
         }
         workerQueue->VerifyIsCurrentQueue();
         return [self transactionWithRetries:(retries - 1)
-                        workerQueue:workerQueue
+                                workerQueue:workerQueue
                                 updateBlock:updateBlock
                                  completion:completion];
       }];

@@ -181,8 +181,10 @@ static FIRFirestoreSettings *defaultSettings;
 - (FIRFirestore *)firestoreWithProjectID:(NSString *)projectID {
   NSString *persistenceKey = [NSString stringWithFormat:@"db%lu", (unsigned long)_firestores.count];
 
-  dispatch_queue_t queue = dispatch_queue_create("com.google.firebase.firestore", DISPATCH_QUEUE_SERIAL);
-  std::unique_ptr<AsyncQueue> workerQueue = absl::make_unique<AsyncQueue>(absl::make_unique<ExecutorLibdispatch>(queue));
+  dispatch_queue_t queue =
+      dispatch_queue_create("com.google.firebase.firestore", DISPATCH_QUEUE_SERIAL);
+  std::unique_ptr<AsyncQueue> workerQueue =
+      absl::make_unique<AsyncQueue>(absl::make_unique<ExecutorLibdispatch>(queue));
 
   FIRSetLoggerLevel(FIRLoggerLevelDebug);
 
@@ -194,7 +196,7 @@ static FIRFirestoreSettings *defaultSettings;
                                                            database:DatabaseId::kDefault
                                                      persistenceKey:persistenceKey
                                                 credentialsProvider:std::move(credentials_provider)
-                                                workerQueue:std::move(workerQueue)
+                                                        workerQueue:std::move(workerQueue)
                                                         firebaseApp:app];
 
   firestore.settings = [FSTIntegrationTestCase settings];

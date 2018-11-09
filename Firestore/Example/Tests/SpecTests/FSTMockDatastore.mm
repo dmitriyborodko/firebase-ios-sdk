@@ -267,17 +267,16 @@ using firebase::firestore::remote::MockWriteStream;
 #pragma mark - Overridden FSTDatastore methods.
 
 - (instancetype)initWithDatabaseInfo:(const DatabaseInfo *)databaseInfo
-                 workerQueue:(AsyncQueue*)workerQueue
+                         workerQueue:(AsyncQueue *)workerQueue
                          credentials:(CredentialsProvider *)credentials {
   if (self = [super initWithDatabaseInfo:databaseInfo
-                     workerQueue:workerQueue
+                             workerQueue:workerQueue
                              credentials:credentials]) {
     _workerQueue = workerQueue;
     _credentials = credentials;
     _connectivityMonitor = CreateNoOpConnectivityMonitor();
-    _grpcConnection =
-        absl::make_unique<GrpcConnection>(*databaseInfo, workerQueue,
-                                          &_grpcQueue, _connectivityMonitor.get());
+    _grpcConnection = absl::make_unique<GrpcConnection>(*databaseInfo, workerQueue, &_grpcQueue,
+                                                        _connectivityMonitor.get());
   }
   return self;
 }

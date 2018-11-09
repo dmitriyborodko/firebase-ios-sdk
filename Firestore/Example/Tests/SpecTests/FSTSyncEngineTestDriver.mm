@@ -140,12 +140,12 @@ NS_ASSUME_NONNULL_BEGIN
     _persistence = persistence;
     _localStore = [[FSTLocalStore alloc] initWithPersistence:persistence initialUser:initialUser];
     _datastore = [[FSTMockDatastore alloc] initWithDatabaseInfo:&_databaseInfo
-                                            workerQueue:_workerQueue.get()
+                                                    workerQueue:_workerQueue.get()
                                                     credentials:&_credentialProvider];
 
     _remoteStore = [[FSTRemoteStore alloc] initWithLocalStore:_localStore
                                                     datastore:_datastore
-                                          workerQueue:_workerQueue.get()];
+                                                  workerQueue:_workerQueue.get()];
 
     _syncEngine = [[FSTSyncEngine alloc] initWithLocalStore:_localStore
                                                 remoteStore:_remoteStore
@@ -182,8 +182,7 @@ NS_ASSUME_NONNULL_BEGIN
 }
 
 - (void)drainQueue {
-  _workerQueue->EnqueueBlocking([&] {
-  });
+  _workerQueue->EnqueueBlocking([&] {});
 }
 
 - (const User &)currentUser {
@@ -249,9 +248,7 @@ NS_ASSUME_NONNULL_BEGIN
 }
 
 - (void)enableNetwork {
-  _workerQueue->EnqueueBlocking([&] {
-    [self.remoteStore enableNetwork];
-  });
+  _workerQueue->EnqueueBlocking([&] { [self.remoteStore enableNetwork]; });
 }
 
 - (void)runTimer:(TimerId)timerID {
@@ -260,9 +257,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)changeUser:(const User &)user {
   _currentUser = user;
-  _workerQueue->EnqueueBlocking([&] {
-    [self.syncEngine credentialDidChangeWithUser:user];
-  });
+  _workerQueue->EnqueueBlocking([&] { [self.syncEngine credentialDidChangeWithUser:user]; });
 }
 
 - (FSTOutstandingWrite *)receiveWriteAckWithVersion:(const SnapshotVersion &)commitVersion
@@ -272,9 +267,8 @@ NS_ASSUME_NONNULL_BEGIN
   [[self currentOutstandingWrites] removeObjectAtIndex:0];
   [self validateNextWriteSent:write.write];
 
-  _workerQueue->EnqueueBlocking([&] {
-    [self.datastore ackWriteWithVersion:commitVersion mutationResults:mutationResults];
-  });
+  _workerQueue->EnqueueBlocking(
+      [&] { [self.datastore ackWriteWithVersion:commitVersion mutationResults:mutationResults]; });
 
   return write;
 }
@@ -295,9 +289,7 @@ NS_ASSUME_NONNULL_BEGIN
   }
 
   LOG_DEBUG("Failing a write.");
-  _workerQueue->EnqueueBlocking([&] {
-    [self.datastore failWriteWithError:error];
-  });
+  _workerQueue->EnqueueBlocking([&] { [self.datastore failWriteWithError:error]; });
 
   return write;
 }
@@ -338,18 +330,14 @@ NS_ASSUME_NONNULL_BEGIN
       }];
   self.queryListeners[query] = listener;
   TargetId targetID;
-  _workerQueue->EnqueueBlocking([&] {
-    targetID = [self.eventManager addListener:listener];
-  });
+  _workerQueue->EnqueueBlocking([&] { targetID = [self.eventManager addListener:listener]; });
   return targetID;
 }
 
 - (void)removeUserListenerWithQuery:(FSTQuery *)query {
   FSTQueryListener *listener = self.queryListeners[query];
   [self.queryListeners removeObjectForKey:query];
-  _workerQueue->EnqueueBlocking([&] {
-    [self.eventManager removeListener:listener];
-  });
+  _workerQueue->EnqueueBlocking([&] { [self.eventManager removeListener:listener]; });
 }
 
 - (void)writeUserMutation:(FSTMutation *)mutation {
@@ -378,9 +366,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)receiveWatchChange:(FSTWatchChange *)change
            snapshotVersion:(const SnapshotVersion &)snapshot {
-  _workerQueue->EnqueueBlocking([&] {
-    [self.datastore writeWatchChange:change snapshotVersion:snapshot];
-  });
+  _workerQueue->EnqueueBlocking(
+      [&] { [self.datastore writeWatchChange:change snapshotVersion:snapshot]; });
 }
 
 - (void)receiveWatchStreamError:(int)errorCode userInfo:(NSDictionary<NSString *, id> *)userInfo {
